@@ -47,7 +47,7 @@ def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
     for n_iter in range(max_iters):
         i_rand=random.randint(0,n)
         xi=tx[i_rand,:] #we compute the gradient with respect to this random point
-        e=y[i]-xi.dot(w) #the error, just a scalar since minibatch size is 1
+        e=y[i_rand]-xi.dot(w) #the error, just a scalar since minibatch size is 1
         grad=(xi.T)*(-e/n)
         w = w - grad*gamma
     e=y-tx.dot(w)  #we only need to compute the loss for the final value of w, but to do so we must refresh the error with the final value of w
