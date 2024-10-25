@@ -135,7 +135,10 @@ def reg_log_reg_poly(y,tx,degree,lambda_ ,initial_w, max_iters, gamma): #logisti
     mse_train,f1_train=mse_submission(out_train,y),f1_submission(out_train,y)
     return w,out_train,nll_train,mse_train,f1_train
 
-w_reg_log_poly_30to100,_,_,_,_=reg_log_reg_poly(y_train,x_train[:,30:100],3,0.01,np.zeros(210),100,0.5)
-y_test_pred_log_poly_30to100 = pred_0to1(class_0(standardize(build_poly(nan_to_zero(x_train[:,30:100]),3)).dot(w_reg_log_poly_30to100)))
+w_reg_log,_,_,_,_=reg_log_reg_poly(y_train[:250000],x_train[:250000,30:100],5,0.001,np.zeros(350),500,0.5)
+mse_submission(pred_0to1(class_0(standardize(build_poly(nan_to_zero(x_train[250000:,30:100]),5)).dot(w_reg_log))),y_train[250000:]),f1_submission(pred_0to1(class_0(standardize(build_poly(nan_to_zero(x_train[250000:,30:100]),5)).dot(w_reg_log))),y_train[250000:])
+
+w_reg_log_poly_30to100,_,_,_,_=reg_log_reg_poly(y_train,x_train[:,30:100],5,0.001,np.zeros(350),500,0.5)
+y_test_pred_log_poly_30to100 = pred_0to1(class_0(standardize(build_poly(nan_to_zero(x_test[:,30:100]),5)).dot(w_reg_log_poly_30to100)))
 create_csv_submission(test_ids, y_test_pred_log_poly_30to100, 'reg_log_poly 30to100')
-''' déception, f1=0.107 '''
+''' déception, f1=0.107 alors que sur le training juste au-dessus j'avais f1=0.39'''
