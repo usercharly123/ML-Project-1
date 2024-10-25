@@ -68,6 +68,35 @@ def class_1(y): #for predictions made in -1/1, classifies over/under 0
 def nan_to_zero(x): #as a starter, treat all nans as 0
     return np.nan_to_num(x)
 
+def nan_to_mean(x,l): #instead of setting nans to 0 we set them to the mean of the column values, for the feature indices in l
+    n,_=x.shape
+    xx=np.copy(x)
+    for j in l : 
+        sum=0
+        non_nan=0
+        nan_ind=[]
+        for i in range(n): #go through the column once to note where nans are and take the mean of non_nan values
+            if np.isnan(x[i,j]):nan_ind.append(i)
+            else : 
+                sum+=x[i,j]
+                non_nan+=1
+        mean_j=sum/non_nan
+        for i in nan_ind : #change the nans to the mean value
+            xx[i,j]=mean_j
+    return xx
+
+def build_poly(x,degree):
+    ''' Each feature gets applied the degree enhancement, so we end up with a dataset of size n * d.degree
+    This way we might be able to capture more complexity in the way features are coded (since linear increase of their value does not always mean linear increas of the output...)
+    '''
+    n,d=x.shape
+    res=np.zeros((n,d*degree))
+    for i in range(d):
+        res[:,i*degree]=x[:,i]
+        for j in range(1,degree):
+            res[:,i*degree+j]=res[:,i*degree+j-1]*x[:,i]
+    return res
+
 def standardize(x): #to standardize the cleaned dataset
     (n,p)=x.shape
     means=np.zeros((n,p))
@@ -86,7 +115,7 @@ def reg_log_reg_test(y,tx,lambda_ ,initial_w, max_iters, gamma): #trains the mod
     w,nll_train=reg_logistic_regression(y_tozero, x_clean, lambda_ ,initial_w, max_iters, gamma)
     y_pred=x_clean.dot(w)
     out_train=pred_0to1(class_0(y_pred))
-    mse_train,f1_train=mse_submission(out,y),f1_submission(out,y)
+    mse_train,f1_train=mse_submission(out_train,y),f1_submission(out_train,y)
     return w,out_train,nll_train,mse_train,f1_train
 
 y_test_pred_base=baseline_bphig4(x_test) # to generate the baseline based on bphigh4 column only
@@ -95,4 +124,18 @@ create_csv_submission(test_ids, y_test_pred_base, 'baseline bphig4')
 w_reg_log_30to100,_,_,_,_=reg_log_reg_test(y_train,x_train[:,30:100],0.001,np.zeros(70),100,0.5) # to generate the reg_log 30_100 prediction
 y_test_pred_log_30to100 = pred_0to1(class_0(standardize(nan_to_zero(x_test[:,30:100])).dot(w_reg_log_30to100)))
 create_csv_submission(test_ids, y_test_pred_log_30to100, 'reg_log 30to100')
+'''pas mal, f1=0.380'''
     
+def reg_log_reg_poly(y,tx,degree,lambda_ ,initial_w, max_iters, gamma): #logistic regression after building polynomial basis
+    y_tozero=pred_1to0(y)
+    x_clean=standardize(build_poly(nan_to_zero(tx),degree))
+    w,nll_train=reg_logistic_regression(y_tozero, x_clean, lambda_ ,initial_w, max_iters, gamma)
+    y_pred=x_clean.dot(w)
+    out_train=pred_0to1(class_0(y_pred))
+    mse_train,f1_train=mse_submission(out_train,y),f1_submission(out_train,y)
+    return w,out_train,nll_train,mse_train,f1_train
+
+w_reg_log_poly_30to100,_,_,_,_=reg_log_reg_poly(y_train,x_train[:,30:100],3,0.01,np.zeros(210),100,0.5)
+y_test_pred_log_poly_30to100 = pred_0to1(class_0(standardize(build_poly(nan_to_zero(x_train[:,30:100]),3)).dot(w_reg_log_poly_30to100)))
+create_csv_submission(test_ids, y_test_pred_log_poly_30to100, 'reg_log_poly 30to100')
+''' déception, f1=0.107 '''
