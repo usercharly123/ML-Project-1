@@ -32,14 +32,19 @@ To reproduce our best submission, run `run.py`.
 
 ## Data preparation
 
-## Feature validation
+- **Outlier removal and pruning**
 
-## Cross-validation steps
+To tackle the high redundancy, we pruned the features, by removing every variable highly correlated (> 0.8 in modulus) to another variable of the dataset. Depending on the normalization preprocessing step that we apply, we remove 94 or 115 columns with this process.
+
+- **Normalization**
+
+We used standard normalization. We only transformed the "don't know" answers in NaNs (and not the "prefer not to say") in our model.
 
 
+- **Sparsity of the data: NaN handling**
 
+We wanted that the NaN values were considered as "neutral" information in our model.
+Thus, for both categorical and continuous features, we chose to assess whether transforming them in the median value for the features, or in zeros, would be the best option for the neutrality.
 
-To do: 
-- write a clear ReadMe file
-- provide a code submission which will include the 6 basic method implementations, as well as the best result we had on the task
-- provide a latex report of 2 pages 
+We performed this step after the normalization, so that this artificial transformation does not introduce bias in the normalization.
+
