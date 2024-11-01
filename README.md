@@ -26,8 +26,6 @@ The dataset could not be pushed in the git, one may need to add it after cloning
 
 - `reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma)`
 
-The 'Submissions' folder contains the submissions of the different models we tried
-
 To reproduce our best submission, run `run.py`.
 
 ## Data preparation
