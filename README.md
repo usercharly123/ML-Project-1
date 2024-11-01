@@ -27,6 +27,7 @@ The dataset could not be pushed in the git, one may need to add it after cloning
 - `reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma)`
 
 To reproduce our best submission, run `run.py`.
+To reproduce our data analysis steps, run cleaning.ipynb.
 
 ## Data preparation
 
