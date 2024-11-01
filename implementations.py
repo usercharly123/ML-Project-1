@@ -194,13 +194,15 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     w = initial_w
 
     for n_iter in range(max_iters):
-        grad = ( # Use the l2 regularization
-            calculate_gradient(y, tx, w) + 2 * lambda_ * w
+        grad = (
+            calculate_gradient(y, tx, w) + w * 2 * lambda_
         )  # the only thing that changes in the regularized method is the value of the gradient
         w = w - grad * gamma
     loss = calculate_nll(y, tx, w)
 
     return w, loss
+
+
 
 def lasso_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     """Regularized Logistic Regression using Gradient Descent.
