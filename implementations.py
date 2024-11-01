@@ -194,10 +194,95 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     w = initial_w
 
     for n_iter in range(max_iters):
-        grad = (
-            calculate_gradient(y, tx, w) + w * 2 * lambda_
+        grad = ( # Use the l2 regularization
+            calculate_gradient(y, tx, w) + 2 * lambda_ * w
         )  # the only thing that changes in the regularized method is the value of the gradient
         w = w - grad * gamma
     loss = calculate_nll(y, tx, w)
 
     return w, loss
+
+def lasso_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
+    """Regularized Logistic Regression using Gradient Descent.
+
+    Args:
+        y: numpy array of shape=(N, ), with values 0 or 1
+        tx: numpy array of shape=(N,D)
+        lambda_: scalar denoting the strength of regularization
+        initial_w: numpy array of shape=(D, ). The initialization for the model parameters
+        max_iters: a scalar denoting the total number of iterations of GD
+        gamma: a scalar denoting the stepsize
+
+    Returns:
+        loss: the value of the negative log-likelihood corresponding to the final value of w
+        w: the final model returned by GD
+    """
+    n, _ = tx.shape
+    w = initial_w
+
+    for n_iter in range(max_iters):
+        grad = ( # Use the l1 regularization
+            calculate_gradient(y, tx, w) + lambda_ * np.sign(w)
+        )  # the only thing that changes in the regularized method is the value of the gradient
+        w = w - grad * gamma
+    loss = calculate_nll(y, tx, w)
+
+    return w, loss
+
+def training(y, tx, lambda_, initial_w, max_iters, gamma, X_val, y_val):
+    """Regularized Logistic Regression using Gradient Descent.
+
+    Args:
+        y: numpy array of shape=(N, ), with values 0 or 1
+        tx: numpy array of shape=(N,D)
+        lambda_: scalar denoting the strength of regularization
+        initial_w: numpy array of shape=(D, ). The initialization for the model parameters
+        max_iters: a scalar denoting the total number of iterations of GD
+        gamma: a scalar denoting the stepsize
+
+    Returns:
+        loss: the value of the negative log-likelihood corresponding to the final value of w
+        w: the final model returned by GD
+    """
+    n, _ = tx.shape
+    w = initial_w
+    losses = []
+    val_losses = []
+
+    for n_iter in range(max_iters):
+        grad = ( # Use the l1 regularization and the l2 regularization
+            calculate_gradient(y, tx, w) + 2 * lambda_ * w
+        )  # the only thing that changes in the regularized method is the value of the gradient
+        w = w - grad * gamma
+        if n_iter % (max_iters/5) == 0:
+            losses.append(calculate_nll(y, tx, w))
+            val_losses.append(calculate_nll(y_val, X_val, w))
+
+    return w, losses, val_losses
+
+
+def split_data(x, y, ratio, seed=1):
+    np.random.seed(seed)
+    n = len(y)
+    indices = np.random.permutation(n)
+    n_train = int(np.floor(n * ratio))
+    indices_train = indices[:n_train]
+    indices_test = indices[n_train:]
+    return x[indices_train], x[indices_test], y[indices_train], y[indices_test]
+
+def compute_accuracy(y, y_pred):
+    return np.sum(y == y_pred) / len(y)
+
+def compute_f1_score(y, y_pred):
+    # True positives: predicted 1 and actual 1
+    tp = np.sum((y == 1) & (y_pred == 1))
+    # False positives: predicted 1 but actual -1
+    fp = np.sum((y == -1) & (y_pred == 1))
+    # False negatives: predicted -1 but actual 1
+    fn = np.sum((y == 1) & (y_pred == -1))
+    
+    # Precision and recall, with safety check for division by zero
+    precision = tp / (tp + fp) if (tp + fp) != 0 else 0
+    recall = tp / (tp + fn) if (tp + fn) != 0 else 0
+    
+    return 2 * precision * recall / (precision + recall) if (precision + recall) != 0 else 0
